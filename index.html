@@ -6,137 +6,111 @@
   <title>Smart Wardrobe Assistant</title>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 20px;
-      background-color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
     }
-
     h1 {
-      text-align: center;
+      color: #333;
     }
-
-    .form-group, .outfit, .clothing-list {
+    .container {
+      max-width: 500px;
+      margin: auto;
       background: white;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    input, select, button {
-      padding: 8px;
-      margin: 5px 0;
+    label {
+      font-weight: bold;
+    }
+    select, input[type="color"] {
       width: 100%;
-      max-width: 400px;
-      display: block;
+      padding: 8px;
+      margin: 8px 0 16px;
     }
-
-    img {
-      max-width: 80px;
-      max-height: 80px;
-      border-radius: 4px;
-      object-fit: cover;
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border: none;
+      width: 100%;
+      border-radius: 5px;
+      cursor: pointer;
     }
-
-    .clothing-item {
-      display: inline-block;
-      margin: 10px;
-      text-align: center;
+    .output {
+      margin-top: 20px;
+      background: #e0ffe0;
+      padding: 15px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>Smart Wardrobe Assistant</h1>
+  <div class="container">
+    <h1>Smart Outfit Decision System</h1>
 
-  <div class="form-group">
-    <h2>Add a Clothing Item</h2>
-    <input type="file" id="imageInput" accept="image/*" />
-    <input type="text" id="tagInput" placeholder="e.g. red, shirt, party" />
-    <button onclick="addClothing()">Add to Wardrobe</button>
-  </div>
-
-  <div class="clothing-list">
-    <h2>Your Wardrobe</h2>
-    <div id="wardrobeItems"></div>
-  </div>
-
-  <div class="form-group">
-    <h2>Get Outfit Suggestion</h2>
-    <select id="occasionSelect">
-      <option value="">Select Occasion</option>
-      <option value="work">Work</option>
-      <option value="party">Party</option>
-      <option value="gym">Gym</option>
-      <option value="casual">Casual</option>
+    <label for="occasion">Where are you going?</label>
+    <select id="occasion">
+      <option value="Work">Work</option>
+      <option value="Party">Party</option>
+      <option value="Gym">Gym</option>
+      <option value="Date">Date</option>
+      <option value="Casual">Casual / Home</option>
     </select>
-    <input type="text" id="colorPreference" placeholder="Preferred color (optional)" />
-    <button onclick="suggestOutfit()">Suggest Outfit</button>
-  </div>
 
-  <div class="outfit">
-    <h2>Suggested Outfit</h2>
-    <div id="suggestedOutfit"></div>
+    <label for="weather">Weather condition</label>
+    <select id="weather">
+      <option value="Sunny">Sunny</option>
+      <option value="Rainy">Rainy</option>
+      <option value="Cold">Cold</option>
+      <option value="Hot">Hot</option>
+    </select>
+
+    <label for="color">Preferred color</label>
+    <input type="color" id="color" value="#ff0000" />
+
+    <button onclick="decideOutfit()">Suggest Outfit</button>
+
+    <div class="output" id="output"></div>
   </div>
 
   <script>
-    let wardrobe = JSON.parse(localStorage.getItem('wardrobe')) || [];
+    function decideOutfit() {
+      const occasion = document.getElementById("occasion").value;
+      const weather = document.getElementById("weather").value;
+      const color = document.getElementById("color").value;
 
-    function displayWardrobe() {
-      const container = document.getElementById("wardrobeItems");
-      container.innerHTML = "";
-      wardrobe.forEach((item, index) => {
-        const div = document.createElement("div");
-        div.className = "clothing-item";
-        div.innerHTML = `
-          <img src="${item.image}" alt="Clothing ${index}">
-          <p>${item.tags}</p>
-        `;
-        container.appendChild(div);
-      });
-    }
+      let suggestion = "";
 
-    function addClothing() {
-      const imageInput = document.getElementById("imageInput");
-      const tagInput = document.getElementById("tagInput");
-
-      if (!imageInput.files[0] || !tagInput.value) {
-        alert("Please upload an image and enter tags.");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        wardrobe.push({ image: e.target.result, tags: tagInput.value.toLowerCase() });
-        localStorage.setItem('wardrobe', JSON.stringify(wardrobe));
-        displayWardrobe();
-        tagInput.value = "";
-        imageInput.value = null;
-      };
-      reader.readAsDataURL(imageInput.files[0]);
-    }
-
-    function suggestOutfit() {
-      const occasion = document.getElementById("occasionSelect").value.toLowerCase();
-      const color = document.getElementById("colorPreference").value.toLowerCase();
-      const result = document.getElementById("suggestedOutfit");
-
-      const filtered = wardrobe.filter(item =>
-        (occasion === "" || item.tags.includes(occasion)) &&
-        (color === "" || item.tags.includes(color))
-      );
-
-      if (filtered.length === 0) {
-        result.innerHTML = "<p>No matching outfit found.</p>";
+      // Basic logic
+      if (occasion === "Work") {
+        suggestion = "A formal shirt and trousers";
+      } else if (occasion === "Party") {
+        suggestion = "A stylish outfit with some accessories";
+      } else if (occasion === "Gym") {
+        suggestion = "Comfortable sportswear and trainers";
+      } else if (occasion === "Date") {
+        suggestion = "A smart casual outfit with a personal touch";
       } else {
-        const pick = filtered[Math.floor(Math.random() * filtered.length)];
-        result.innerHTML = `
-          <img src="${pick.image}" alt="Outfit">
-          <p>${pick.tags}</p>
-        `;
+        suggestion = "A comfy hoodie and joggers";
       }
-    }
 
-    displayWardrobe();
+      if (weather === "Rainy") {
+        suggestion += ", and don't forget a waterproof jacket!";
+      } else if (weather === "Cold") {
+        suggestion += ", plus a coat and scarf!";
+      } else if (weather === "Hot") {
+        suggestion += ", and keep it light and breathable.";
+      }
+
+      const output = `
+        <strong>👕 Suggested Outfit:</strong><br>
+        ${suggestion}<br><br>
+        <strong>🎨 Include your preferred color:</strong> <span style="color:${color}">${color}</span>
+      `;
+      document.getElementById("output").innerHTML = output;
+    }
   </script>
 </body>
 </html>
